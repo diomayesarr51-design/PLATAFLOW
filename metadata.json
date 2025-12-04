@@ -1,0 +1,5 @@
+{
+  "name": "PlataFlow",
+  "description": "Plateforme SaaS B2B de gestion de facturation intelligente pour PME. Inclut tableaux de bord, édition de factures WYSIWYG, et gestion clients.",
+  "requestFramePermissions": []
+}
