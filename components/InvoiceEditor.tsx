@@ -3,6 +3,9 @@ import { Invoice, InvoiceItem, Client } from '../types';
 import { Plus, Trash2, Save, Download, ArrowLeft, Wand2, GripVertical } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useData } from '../contexts/DataProvider';
+import { useTranslation } from '../lib/i18n';
+import { formatCurrency, formatDate } from '../lib/formatters';
+import { getStatusConfig } from '../lib/statusSystem';
 
 interface InvoiceEditorProps {
   initialInvoice?: Invoice | null;
@@ -11,6 +14,7 @@ interface InvoiceEditorProps {
 
 const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel }) => {
   const { clients, updateInvoice } = useData();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const [isSaving, setIsSaving] = useState(false);
   
@@ -81,7 +85,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
       id: invoice.id || Math.random().toString(36).substr(2, 9),
       number: invoice.number!,
       clientId: selectedClientId,
-      status: invoice.status as any || 'SENT', // Simulate immediate send for dashboard impact
+      status: invoice.status as any || 'SENT',
       date: invoice.date!,
       dueDate: dueDate.toISOString().split('T')[0],
       items: invoice.items || [],
@@ -92,15 +96,15 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
       notes: invoice.notes
     };
 
-    // Simulate network delay
     setTimeout(() => {
       updateInvoice(finalInvoice);
       setIsSaving(false);
-      onCancel(); // Go back to list
+      onCancel();
     }, 800);
   };
 
   const selectedClient = clients.find(c => c.id === selectedClientId);
+  const statusConfig = getStatusConfig(invoice.status || 'DRAFT');
 
   // Reusable sub-components for cleaner render
   const ClientSection = () => (
@@ -108,13 +112,13 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
       <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Informations Client</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Facturer à</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">{t.invoice.editor.billTo}</label>
           <select 
             value={selectedClientId} 
             onChange={(e) => setSelectedClientId(e.target.value)}
             className="w-full p-3 border border-slate-200 rounded-lg bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
           >
-            <option value="">-- Sélectionner un client --</option>
+            <option value="">{t.invoice.editor.selectClient}</option>
             {clients.map(client => (
               <option key={client.id} value={client.id}>{client.name}</option>
             ))}
@@ -130,7 +134,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Date d'émission</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">{t.invoice.date}</label>
             <input 
               type="date" 
               value={invoice.date}
@@ -181,7 +185,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
                 </div>
              </div>
              <div className="flex justify-between items-center pt-2 border-t border-slate-50">
-                <span className="font-bold text-slate-900">{(item.quantity * item.unitPrice).toFixed(2)} €</span>
+                <span className="font-bold text-slate-900">{formatCurrency(item.quantity * item.unitPrice)}</span>
                 <button onClick={() => handleRemoveItem(item.id)} className="text-red-500 p-2"><Trash2 size={18}/></button>
              </div>
           </div>
@@ -215,7 +219,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
                 />
             </div>
             <div className="w-24 text-right font-bold text-slate-900">
-              {(item.quantity * item.unitPrice).toFixed(2)} €
+              {formatCurrency(item.quantity * item.unitPrice)}
             </div>
             <button 
               onClick={() => handleRemoveItem(item.id)}
@@ -228,7 +232,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
       ))}
       
       <Button variant="secondary" onClick={handleAddItem} icon={<Plus size={16} />} fullWidth className="border-dashed border-2 bg-transparent text-slate-600 hover:bg-slate-50 border-slate-300 shadow-none">
-        Ajouter une ligne
+        {t.invoice.editor.addItem}
       </Button>
     </div>
   );
@@ -261,11 +265,11 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
              <div className="flex-1 md:text-right">
                 <div className="flex justify-between md:justify-end gap-8 mb-2">
                    <span className="text-slate-500 text-sm">Date:</span>
-                   <span className="font-medium">{new Date(invoice.date!).toLocaleDateString()}</span>
+                   <span className="font-medium">{formatDate(invoice.date!)}</span>
                 </div>
                 <div className="flex justify-between md:justify-end gap-8">
                    <span className="text-slate-500 text-sm">Total:</span>
-                   <span className="font-bold text-blue-600">{invoice.total?.toFixed(2)} €</span>
+                   <span className="font-bold text-blue-600">{formatCurrency(invoice.total || 0)}</span>
                 </div>
              </div>
           </div>
@@ -284,8 +288,8 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
                    <tr key={item.id}>
                       <td className="py-3 text-slate-900">{item.description || <span className="text-slate-300 italic">Item sans nom</span>}</td>
                       <td className="py-3 text-right text-slate-600">{item.quantity}</td>
-                      <td className="py-3 text-right text-slate-600">{item.unitPrice.toFixed(2)}</td>
-                      <td className="py-3 text-right font-medium text-slate-900">{(item.quantity * item.unitPrice).toFixed(2)}</td>
+                      <td className="py-3 text-right text-slate-600">{formatCurrency(item.unitPrice)}</td>
+                      <td className="py-3 text-right font-medium text-slate-900">{formatCurrency(item.quantity * item.unitPrice)}</td>
                    </tr>
                 ))}
              </tbody>
@@ -294,16 +298,16 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
           <div className="flex justify-end">
              <div className="w-full md:w-1/2 space-y-2">
                 <div className="flex justify-between text-sm text-slate-600">
-                   <span>Sous-total</span>
-                   <span>{invoice.subtotal?.toFixed(2)} €</span>
+                   <span>{t.invoice.editor.subtotal}</span>
+                   <span>{formatCurrency(invoice.subtotal || 0)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-slate-600">
-                   <span>TVA (20%)</span>
-                   <span>{invoice.taxTotal?.toFixed(2)} €</span>
+                   <span>{t.invoice.editor.tax}</span>
+                   <span>{formatCurrency(invoice.taxTotal || 0)}</span>
                 </div>
                 <div className="border-t border-slate-200 pt-2 flex justify-between text-lg font-bold text-slate-900">
-                   <span>Total TTC</span>
-                   <span>{invoice.total?.toFixed(2)} €</span>
+                   <span>{t.invoice.editor.total}</span>
+                   <span>{formatCurrency(invoice.total || 0)}</span>
                 </div>
              </div>
           </div>
@@ -322,7 +326,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
           <div>
              <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                {invoice.number}
-               <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded uppercase">{invoice.status}</span>
+               <span className={`text-xs px-2 py-0.5 rounded uppercase border ${statusConfig.colorClass}`}>{statusConfig.label}</span>
              </h1>
           </div>
         </div>
@@ -345,8 +349,8 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
 
         {/* Action Buttons */}
         <div className="hidden md:flex gap-3">
-          <Button variant="outline" icon={<Download size={18} />}>PDF</Button>
-          <Button onClick={handleSave} isLoading={isSaving} icon={<Save size={18} />}>Enregistrer</Button>
+          <Button variant="outline" icon={<Download size={18} />}>{t.common.download}</Button>
+          <Button onClick={handleSave} isLoading={isSaving} icon={<Save size={18} />}>{t.common.save}</Button>
         </div>
       </div>
 
@@ -356,18 +360,18 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
            <ClientSection />
            
            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-slate-900">Lignes de facture</h3>
-              <Button variant="ghost" size="xs" icon={<Wand2 size={14} />} className="text-purple-600">Auto-complétion IA</Button>
+              <h3 className="font-semibold text-slate-900">{t.invoice.editor.items}</h3>
+              <Button variant="ghost" size="xs" icon={<Wand2 size={14} />} className="text-purple-600">{t.invoice.editor.aiSuggest}</Button>
            </div>
            
            <InvoiceItemsList />
 
            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mt-6">
-              <label className="block text-sm font-medium text-slate-700 mb-2">Notes & Conditions</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">{t.invoice.editor.notes}</label>
               <textarea
                 value={invoice.notes || ''}
                 onChange={(e) => setInvoice({...invoice, notes: e.target.value})}
-                placeholder="Conditions de paiement, coordonnées bancaires..."
+                placeholder={t.invoice.editor.notesPlaceholder}
                 className="w-full p-3 border border-slate-200 rounded-lg text-sm text-slate-600 min-h-[100px] focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
            </div>
@@ -378,7 +382,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onCancel 
            <InvoicePreview />
            {/* Mobile Fab for save when in preview */}
            <div className="md:hidden fixed bottom-24 right-4 left-4 z-30">
-              <Button fullWidth onClick={handleSave} isLoading={isSaving} icon={<Save size={18} />} className="shadow-lg">Enregistrer la facture</Button>
+              <Button fullWidth onClick={handleSave} isLoading={isSaving} icon={<Save size={18} />} className="shadow-lg">{t.common.save}</Button>
            </div>
         </div>
       </div>

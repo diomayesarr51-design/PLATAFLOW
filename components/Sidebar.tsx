@@ -1,5 +1,6 @@
 import React from 'react';
 import { LayoutDashboard, FileText, Users, PieChart, Settings, LogOut } from 'lucide-react';
+import { useTranslation } from '../lib/i18n';
 
 interface SidebarProps {
   currentView: string;
@@ -7,12 +8,14 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate }) => {
+  const { t } = useTranslation();
+
   const menuItems = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-    { id: 'invoices', label: 'Factures', icon: FileText },
-    { id: 'clients', label: 'Clients', icon: Users },
-    { id: 'reports', label: 'Rapports', icon: PieChart },
-    { id: 'settings', label: 'Paramètres', icon: Settings },
+    { id: 'dashboard', label: t.common.dashboard, icon: LayoutDashboard },
+    { id: 'invoices', label: t.common.invoices, icon: FileText },
+    { id: 'clients', label: t.common.clients, icon: Users },
+    { id: 'reports', label: t.common.reports, icon: PieChart },
+    { id: 'settings', label: t.common.settings, icon: Settings },
   ];
 
   return (

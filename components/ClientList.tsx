@@ -3,9 +3,11 @@ import { useData } from '../contexts/DataProvider';
 import { Client } from '../types';
 import { Search, Mail, MapPin, Plus, User, X, Check } from 'lucide-react';
 import { Button } from './ui/Button';
+import { useTranslation } from '../lib/i18n';
 
 const ClientList: React.FC = () => {
   const { clients, addClient } = useData();
+  const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newClient, setNewClient] = useState<Partial<Client>>({ name: '', email: '', address: '' });
 
@@ -30,11 +32,11 @@ const ClientList: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Clients</h1>
-          <p className="text-slate-500">Gérez votre base de données clients.</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t.client.title}</h1>
+          <p className="text-slate-500">{t.client.subtitle}</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)} icon={<Plus size={20} />}>
-          Ajouter un client
+          {t.client.addClient}
         </Button>
       </div>
 
@@ -46,12 +48,12 @@ const ClientList: React.FC = () => {
                 <User size={24} />
               </div>
               <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded font-medium border border-green-100">
-                Actif
+                {t.client.active}
               </span>
             </div>
             
             <h3 className="text-lg font-bold text-slate-900 mb-1">{client.name}</h3>
-            <p className="text-sm text-slate-500 mb-4">Client depuis 2023</p>
+            <p className="text-sm text-slate-500 mb-4">{t.client.since} 2023</p>
             
             <div className="space-y-3 text-sm">
               <div className="flex items-center text-slate-600 gap-2">
@@ -69,7 +71,7 @@ const ClientList: React.FC = () => {
                 SIREN: {client.siren || 'N/A'}
               </div>
               <button className="text-blue-600 text-sm font-medium hover:underline">
-                Voir détails
+                {t.common.viewDetails}
               </button>
             </div>
           </div>
@@ -82,7 +84,7 @@ const ClientList: React.FC = () => {
             <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
               <Plus size={24} />
             </div>
-            <span className="font-medium">Ajouter un nouveau client</span>
+            <span className="font-medium">{t.client.newClient}</span>
         </button>
       </div>
 
@@ -91,12 +93,12 @@ const ClientList: React.FC = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
            <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-scale-in">
               <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-                 <h3 className="font-bold text-lg">Nouveau Client</h3>
+                 <h3 className="font-bold text-lg">{t.client.newClient}</h3>
                  <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
               </div>
               <form onSubmit={handleAddClient} className="p-6 space-y-4">
                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Nom de l'entreprise</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t.client.form.name}</label>
                     <input 
                       autoFocus
                       required
@@ -107,7 +109,7 @@ const ClientList: React.FC = () => {
                     />
                  </div>
                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t.client.form.email}</label>
                     <input 
                       type="email" 
                       value={newClient.email} 
@@ -116,7 +118,7 @@ const ClientList: React.FC = () => {
                     />
                  </div>
                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Adresse</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t.client.form.address}</label>
                     <input 
                       type="text" 
                       value={newClient.address} 
@@ -125,8 +127,8 @@ const ClientList: React.FC = () => {
                     />
                  </div>
                  <div className="pt-4 flex justify-end gap-3">
-                    <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Annuler</Button>
-                    <Button type="submit">Ajouter le client</Button>
+                    <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>{t.common.cancel}</Button>
+                    <Button type="submit">{t.client.addClient}</Button>
                  </div>
               </form>
            </div>
